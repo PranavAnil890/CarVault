@@ -79,6 +79,59 @@ router.post('/register', async (req, res) => {
     }
 });
 
+//register the admin
+
+router.post('/admin/register',async (req,res) => {
+    try{
+
+        const{
+            name,
+            email,
+            password,
+            
+        }=req.body;
+
+        const existingUser = await user.findOne({
+            email: email
+        });
+
+        if (existingUser) {
+            return res.status(400).json({
+                message: 'Email already registered'
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(
+            password,
+            10
+        );
+
+        const newAdmin = new user({
+            name,
+            email,
+            password: hashedPassword,
+            role: 'admin'
+        });
+
+        const savedAdmin = await newAdmin.save();
+
+        res.status(201).json({
+            message: 'Admin created successfully',
+            admin:{
+                id: savedAdmin._id,
+                name:savedAdmin.name,
+                email:savedAdmin.email,
+                role:savedAdmin.role
+            }
+        });
+
+    } catch (error) {
+        res.status(400).json({
+            message: error.message
+        });
+    }
+})
+
 
 
 // login the user
