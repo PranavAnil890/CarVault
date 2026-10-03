@@ -6,6 +6,7 @@ const user = require('../models/user');
 const serviceCenter = require('../models/serviceCenter')
 
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 
 // get the users
@@ -166,10 +167,23 @@ router.post('/login', async (req, res) => {
                 });
             }
 
+            const token = jwt.sign( 
+                { 
+                    id: existingUser._id,
+                     role: existingUser.role
+                     },
+                      process.env.JWT_SECRET,
+                      { 
+                        expiresIn: '1d'
+                     }
+                    );
+
 
             return res.json({
 
                 message: 'Login successful',
+
+                token: token,
 
                 user: {
                     id: existingUser._id,
@@ -204,10 +218,23 @@ router.post('/login', async (req, res) => {
                 });
             }
 
+            const token = jwt.sign( 
+                { 
+                    id: existingServiceCenter._id,
+                     role: 'serviceCenter'
+                     }, 
+                     process.env.JWT_SECRET, 
+                     { 
+                        expiresIn: '1d' 
+                    }
+                 );
+
 
             return res.json({
 
                 message: 'Login successful',
+
+                token: token,
 
                 user: {
                     id: existingServiceCenter._id,
