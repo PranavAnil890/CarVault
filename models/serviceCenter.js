@@ -11,11 +11,6 @@ const serviceCenterSchema = new mongoose.Schema({
         required:true,
     },
 
-     password: {
-        type: String,
-        required: true,
-    },
-
     phone:{
         type:String,
         required:true,
@@ -45,6 +40,12 @@ const serviceCenterSchema = new mongoose.Schema({
         type:Number,
          default: 0
     },
+
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user',
+        required: true
+    }
 
 
 })

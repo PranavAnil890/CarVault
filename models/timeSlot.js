@@ -4,7 +4,7 @@ const timeSlotSchema = new mongoose.Schema({
 
     serviceCenterId:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:'ServiceCenter',
+        ref:'serviceCenter',
         required:true,
     },
 

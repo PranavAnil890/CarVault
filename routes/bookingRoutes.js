@@ -8,6 +8,9 @@ const Booking = require('../models/booking');
 router.get('/',async(req,res)=>{
     try{
         const bookings = await Booking.find()
+        .populate('userId', 'name email')
+            .populate('vehicleId', 'brand model registrationNumber')
+            .populate('serviceId', 'serviceName price');
         res.json(bookings);
     }catch(error){
         res.status(500).json({
@@ -27,9 +30,9 @@ router.post('/',async(req,res)=>{
             serviceId,
             serviceCenterId,
             date,
-            timeSlot,
-            price,
-            status
+            timeSlotId,
+            time
+            
         }=req.body
 
         const newBooking = new Booking({
@@ -38,16 +41,19 @@ router.post('/',async(req,res)=>{
             serviceId,
             serviceCenterId,
             date,
-            timeSlot,
-            price,
-            status
+            timeSlotId,
+            time
+            
         });
 
         const savedBooking = await newBooking.save()
         res.status(201).json(savedBooking)
-    }catch(error){
+    } catch (error) {
+
+        console.log("BOOKING ERROR:", error.message);
+
         res.status(400).json({
-            message:error.message
+            message: error.message
         });
     }
 });

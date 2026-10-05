@@ -2,100 +2,151 @@ const express = require('express');
 const router = express.Router();
 
 const ServiceCenter = require('../models/serviceCenter');
-const bcrypt =require('bcryptjs');
 
-//get all service centers
 
-router.get('/',async(req,res)=>{
-    try{
+// Get all service centers
+
+router.get('/', async (req, res) => {
+
+    try {
+
         const serviceCenters = await ServiceCenter.find();
+
         res.json(serviceCenters);
 
-    }catch(error){
+    } catch (error) {
+
         res.status(500).json({
-            message:error.message
+            message: error.message
         });
+
     }
+
 });
 
-//post a service center
 
-router.post('/',async(req,res)=>{
-    try{
-        const{
+// Create service center profile
+
+router.post('/', async (req, res) => {
+
+    try {
+
+        const {
             name,
             email,
-            password,
             phone,
             address,
             city,
             state,
             pincode,
             rating,
-        }=req.body;
+            userId
+        } = req.body;
 
-        const hashedPassword = await bcrypt.hash(
-            password,10
 
-        );
+        const newServiceCenter = new ServiceCenter({
 
-        const newServiceCenter  = new ServiceCenter({
             name,
             email,
-            password:hashedPassword,
             phone,
             address,
             city,
             state,
             pincode,
             rating,
+            userId
 
         });
+
+
         const savedServiceCenter = await newServiceCenter.save();
+
         res.status(201).json(savedServiceCenter);
-        
-    }catch(error){
+
+    } catch (error) {
+
         res.status(400).json({
-            message:error.message
+            message: error.message
         });
+
     }
+
 });
 
-//put a service center
 
-router.put('/:id',async(req,res)=>{
-    try{
-        const updateServiceCenter = await ServiceCenter.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            {
-                returnDocument: 'after',
-                runValidators: true
-            }
+// Update service center
 
-        );
+router.put('/:id', async (req, res) => {
+
+    try {
+
+        const updateServiceCenter =
+            await ServiceCenter.findByIdAndUpdate(
+                req.params.id,
+                req.body,
+                {
+                    returnDocument: 'after',
+                    runValidators: true
+                }
+            );
+
+
+        if (!updateServiceCenter) {
+
+            return res.status(404).json({
+                message: 'Service center not found'
+            });
+
+        }
+
+
         res.json(updateServiceCenter);
-        
-    }catch(error){
+
+    } catch (error) {
+
         res.status(400).json({
-            message:error.message
+            message: error.message
         });
+
     }
+
 });
 
-// delete  a service center
 
-router.delete('/:id',async(req,res)=>{
-    try{
-        const deleteServiceCenter = await ServiceCenter.findByIdAndDelete(
-            req.params.id
-        );
-        res.json(deleteServiceCenter);
-    }catch(error){
-        res.status(400).json({
-            message:error.message
+// Delete service center
+
+router.delete('/:id', async (req, res) => {
+
+    try {
+
+        const deleteServiceCenter =
+            await ServiceCenter.findByIdAndDelete(
+                req.params.id
+            );
+
+
+        if (!deleteServiceCenter) {
+
+            return res.status(404).json({
+                message: 'Service center not found'
+            });
+
+        }
+
+
+        res.json({
+            message: 'Service center deleted successfully'
         });
+
+    } catch (error) {
+
+        res.status(400).json({
+            message: error.message
+        });
+
     }
+
 });
+
 
 module.exports = router;

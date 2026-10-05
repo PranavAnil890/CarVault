@@ -4,24 +4,24 @@ const bookingSchema = new mongoose.Schema({
 
     userId:{
         type: mongoose.Schema.Types.ObjectId,
-         ref: 'User',
+         ref: 'user',
           required: true
     },
 
     vehicleId: { 
         type: mongoose.Schema.Types.ObjectId,
-         ref: 'Vehicle', 
+         ref: 'vehicle', 
          required: true 
         },
 
         serviceId: {
              type: mongoose.Schema.Types.ObjectId,
-              ref: 'Service',
+              ref: 'service',
                required: true 
             },
             serviceCenterId: { 
                 type: mongoose.Schema.Types.ObjectId, 
-                ref: 'ServiceCenter',
+                ref: 'serviceCenter',
                  required: true 
                 }, 
                 
@@ -30,16 +30,18 @@ const bookingSchema = new mongoose.Schema({
                      required: true
                      },
                      
-                     timeSlot: {
-                         type: String,
-                          required: true
+                     timeSlotId: {
+                         type: mongoose.Schema.Types.ObjectId,
+                          ref: 'TimeSlot',
+                           required: true
                          },
 
-                           price: {
-                             type: Number,
-                              required: true 
-                            },
+                         time:{
+                            type:String,
+                            required:true
+                         },
 
+                          
                             status: { 
                                 type: String, 
                                 enum: [ 'Pending', 'Confirmed', 'Vehicle Received', 'Service In Progress', 'Completed', 'Cancelled', 'Rejected' ], 

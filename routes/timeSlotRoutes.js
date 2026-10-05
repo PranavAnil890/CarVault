@@ -23,7 +23,7 @@ router.get('/',async(req,res) =>{
 router.post('/',async(req,res)=>{
     try{
         const{
-            servicecenterId,
+            serviceCenterId,
             date,
             time,
             isBooked
@@ -31,7 +31,7 @@ router.post('/',async(req,res)=>{
         }=req.body;
 
         const newTimeSlot = new timeSlot({
-            servicecenterId,
+            serviceCenterId,
             date,
             time,
             isBooked

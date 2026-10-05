@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 const user = require('../models/user');
-const serviceCenter = require('../models/serviceCenter')
+
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -70,6 +70,53 @@ router.post('/register', async (req, res) => {
         const savedUser = await newUser.save();
 
         res.status(201).json(savedUser);
+
+    } catch (error) {
+
+        res.status(400).json({
+            message: error.message
+        });
+
+    }
+});
+
+
+
+// register service center
+router.post('/service-center/register', async (req, res) => {
+
+    try {
+
+        const { name, email, password } = req.body;
+
+        const existingUser = await user.findOne({ email });
+
+        if (existingUser) {
+            return res.status(400).json({
+                message: 'Email already registered'
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = new user({
+            name,
+            email,
+            password: hashedPassword,
+            role: 'serviceCenter'
+        });
+
+        const savedUser = await newUser.save();
+
+        res.status(201).json({
+            message: 'Service center account created successfully',
+            user: {
+                id: savedUser._id,
+                name: savedUser.name,
+                email: savedUser.email,
+                role: savedUser.role
+            }
+        });
 
     } catch (error) {
 
@@ -153,7 +200,12 @@ router.post('/login', async (req, res) => {
         });
 
 
-        if (existingUser) {
+        if (!existingUser) {
+            return res.status(400).json({
+                message: 'Invalid email or password'
+
+            })
+        }
 
             const passwordMatch = await bcrypt.compare(
                 password,
@@ -179,7 +231,7 @@ router.post('/login', async (req, res) => {
                     );
 
 
-            return res.json({
+             res.json({
 
                 message: 'Login successful',
 
@@ -188,75 +240,18 @@ router.post('/login', async (req, res) => {
                 user: {
                     id: existingUser._id,
                     name: existingUser.name,
+                    email:existingUser.email,
                     role: existingUser.role
                 }
 
             });
 
-        }
-
-
-        // check the service center
-
-        const existingServiceCenter =
-            await serviceCenter.findOne({
-                email: email
-            });
-
-
-        if (existingServiceCenter) {
-
-            const passwordMatch = await bcrypt.compare(
-                password,
-                existingServiceCenter.password
-            );
-
-
-            if (!passwordMatch) {
-                return res.status(400).json({
-                    message: 'Invalid email or password'
-                });
-            }
-
-            const token = jwt.sign( 
-                { 
-                    id: existingServiceCenter._id,
-                     role: 'serviceCenter'
-                     }, 
-                     process.env.JWT_SECRET, 
-                     { 
-                        expiresIn: '1d' 
-                    }
-                 );
-
-
-            return res.json({
-
-                message: 'Login successful',
-
-                token: token,
-
-                user: {
-                    id: existingServiceCenter._id,
-                    name: existingServiceCenter.name,
-                    role: 'serviceCenter'
-                }
-
-            });
-
-        }
-
-        return res.status(400).json({
-            message: 'Invalid email or password'
-        });
-
-
-    } catch (error) {
-
-        res.status(500).json({
+        }catch(error) {
+            res.status(500).json({
             message: error.message
-        });
 
+            });
+        
     }
 });
 
