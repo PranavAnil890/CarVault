@@ -40,6 +40,8 @@ router.post('/',async(req,res)=>{
         })
 
         const savedServiceHistory = await newServiceHistory.save();
+         console.log("SAVED SERVICE HISTORY:", savedServiceHistory);
+
         res.status(201).json(savedServiceHistory)
     }catch(error){
         res.status(400).json({
@@ -61,8 +63,8 @@ router.put('/:id',async(req,res)=>{
             }
         );
         if(!updateServiceHistory){
-            res.status(404).json({
-                meesage:'servicehistory not found'
+            return res.status(404).json({
+                message:'servicehistory not found'
             })
         }
         res.json(updateServiceHistory)
@@ -82,7 +84,7 @@ router.delete('/:id',async(req,res)=>{
         )
 
         if(!deleteServiceHistory){
-            res.status(404).json({
+           return res.status(404).json({
                 message:'servicehistory not found'
             });
         }

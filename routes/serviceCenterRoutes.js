@@ -83,7 +83,11 @@ router.put('/:id', async (req, res) => {
         const updateServiceCenter =
             await ServiceCenter.findByIdAndUpdate(
                 req.params.id,
-                req.body,
+
+                {
+                    ...req.body,
+                    profileUpdatedAt: new Date()
+                },
                 {
                     returnDocument: 'after',
                     runValidators: true

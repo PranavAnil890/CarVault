@@ -45,6 +45,11 @@ const serviceCenterSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user',
         required: true
+    },
+
+    profileUpdatedAt:{
+        type:Date,
+        default:null
     }
 
 

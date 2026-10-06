@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const Booking = require('../models/booking');
+const ServiceHistory = require('../models/serviceHistory');
 
 // get all booking
 
@@ -60,25 +61,55 @@ router.post('/',async(req,res)=>{
 
 //put all booking
 
-router.put('/:id',async(req,res)=>{
-    try{
-        const updateBooking =await Booking.findByIdAndUpdate(
-            req.params.id,
-                req.body,
-                {
-                      returnDocument: 'after',
-                    runValidators: true
-                }
-        )
-        if(!updateBooking){
-    return res.status(404).json({
-        message:'Booking not found'
-    });
-}
-        res.json(updateBooking);
-    }catch(error){
+router.put('/:id', async (req, res) => {
+
+    try {
+
+        const booking = await Booking.findById(req.params.id)
+            .populate('serviceId', 'price');
+
+        if (!booking) {
+            return res.status(404).json({
+                message: 'Booking not found'
+            });
+        }
+
+        const oldStatus = booking.status;
+
+        booking.status = req.body.status;
+
+        await booking.save();
+
+
+        // Create service history when completed
+
+        if (
+            booking.status === 'Completed' &&
+            oldStatus !== 'Completed'
+        ) {
+
+            await ServiceHistory.create({
+
+                userId: booking.userId,
+                vehicleId: booking.vehicleId,
+                bookingId: booking._id,
+                serviceId: booking.serviceId._id,
+                serviceCenterId: booking.serviceCenterId,
+                serviceDate: booking.date,
+                price: booking.serviceId.price
+
+            });
+
+        }
+
+        res.json(booking);
+
+    } catch (error) {
+
+        console.log(error);
+
         res.status(400).json({
-            message:error.message
+            message: error.message
         });
 
     }
