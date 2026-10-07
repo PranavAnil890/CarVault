@@ -27,7 +27,17 @@ const userSchema = new mongoose.Schema({
         type:String,
         enum:['active','inactive'],
         default:'active'
-    }
+    },
+
+    resetOTP: {
+    type: String,
+    default: null
+},
+
+resetOTPExpire: {
+    type: Date,
+    default: null
+}
 
 })
 

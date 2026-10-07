@@ -4,8 +4,8 @@ const router = express.Router();
 
 const user = require('../models/user');
 
-
 const bcrypt = require('bcryptjs');
+const transporter = require('../config/email');
 const jwt = require('jsonwebtoken');
 
 
@@ -252,6 +252,165 @@ router.post('/login', async (req, res) => {
 
             });
         
+    }
+});
+
+router.post('/forgot-password', async (req, res) => {
+
+    try {
+
+        const { email } = req.body;
+
+        const existingUser = await user.findOne({ email });
+
+        if (!existingUser) {
+            return res.status(404).json({
+                message: 'Email not found'
+            });
+        }
+
+        // Generate 6 digit OTP
+        const otp = Math.floor(
+            100000 + Math.random() * 900000
+        ).toString();
+
+        // OTP expires after 5 minutes
+       existingUser.resetOTP = otp;
+existingUser.resetOTPExpire = new Date(
+    Date.now() + 5 * 60 * 1000
+);
+
+await existingUser.save();
+
+await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: existingUser.email,
+    subject: 'CarVault - Password Reset OTP',
+    html: `
+        <h2>CarVault Password Reset</h2>
+        <p>Hello ${existingUser.name},</p>
+        <p>Your password reset OTP is:</p>
+        <h1>${otp}</h1>
+        <p>This OTP will expire in 5 minutes.</p>
+        <p>If you did not request this, please ignore this email.</p>
+        <p>Regards,<br>CarVault Team</p>
+    `
+});
+        res.json({
+            message: 'OTP sent to your email'
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            message: error.message
+        });
+
+    }
+});
+
+router.post('/verify-otp', async (req, res) => {
+
+    try {
+
+        const { email, otp } = req.body;
+
+       const existingUser = await user.findOne({ email });
+
+        if (!existingUser) {
+            return res.status(404).json({
+                message: 'User not found'
+            });
+        }
+
+       if (!existingUser.resetOTP) {
+    return res.status(400).json({
+        message: 'OTP not found'
+    });
+}
+
+if (existingUser.resetOTPExpire < new Date()) {
+    return res.status(400).json({
+        message: 'OTP expired'
+    });
+}
+
+if (existingUser.resetOTP !== otp) {
+    return res.status(400).json({
+        message: 'Invalid OTP'
+    });
+}
+        res.json({
+            message: 'OTP verified successfully'
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            message: error.message
+        });
+
+    }
+});
+
+router.post('/reset-password', async (req, res) => {
+
+    try {
+
+        const {
+            email,
+            otp,
+            newPassword
+        } = req.body;
+
+        const existingUser = await user.findOne({ email });
+
+        if (!existingUser) {
+            return res.status(404).json({
+                message: 'User not found'
+            });
+        }
+
+        // Check OTP
+        if (existingUser.resetOTP !== otp) {
+            return res.status(400).json({
+                message: 'Invalid OTP'
+            });
+        }
+
+        // Check OTP expiry
+        if (existingUser.resetOTPExpire < new Date()) {
+            return res.status(400).json({
+                message: 'OTP expired'
+            });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(
+            newPassword,
+            10
+        );
+
+        existingUser.password = hashedPassword;
+
+        // Clear OTP
+        existingUser.resetOTP = null;
+        existingUser.resetOTPExpire = null;
+
+        await existingUser.save();
+
+        res.json({
+            message: 'Password reset successfully'
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            message: error.message
+        });
+
     }
 });
 
